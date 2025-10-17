@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://backend-testing-p1vg.vercel.app/";
+const BASE_URL = "https://backend-testing-sage.vercel.app/";
 
 export default function Auth() {
   const [isRegister, setIsRegister] = useState(false);
