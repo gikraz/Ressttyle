@@ -1,98 +1,92 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext.jsx";
+import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
+const BASE_URL = "https://backend-testing-bu2c.vercel.app/api/auth";
+
 export default function Auth() {
-  const { login, register } = useContext(AuthContext);
-  const [isLogin, setIsLogin] = useState(true);
+  const [isRegister, setIsRegister] = useState(false);
   const [form, setForm] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
     role: "buyer",
   });
-  const [message, setMessage] = useState("");
+
   const navigate = useNavigate();
 
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = isLogin ? login : register;
-    const res = await action(form);
-    if (res.success) navigate("/");
-    else setMessage(res.message);
+    try {
+      if (isRegister) {
+        await axios.post(`${BASE_URL}/register`, form);
+        alert("მომხმარებელი შექმნილია. ახლა შეხვიდეთ სისტემაში.");
+        setIsRegister(false);
+      } else {
+        const res = await axios.post(`${BASE_URL}/login`, {
+          email: form.email,
+          password: form.password,
+        });
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.user.role);
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      alert(err.response?.data?.msg || "შეცდომა მოხდა");
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh] bg-gray-50">
-      <form
-        className="bg-white shadow-md rounded-lg p-8 w-80 md:w-96 flex flex-col gap-5"
-        onSubmit={handleSubmit}
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          {isLogin ? "Login" : "Sign Up"}
-        </h2>
-
-        {!isLogin && (
+    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
+      <h2>{isRegister ? "Register" : "Login"}</h2>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {isRegister && (
           <>
             <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={form.username}
+              name="name"
+              placeholder="Name"
+              value={form.name}
               onChange={handleChange}
-              className="border px-3 py-2 rounded"
+              required
             />
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded"
-            >
+            <select name="role" value={form.role} onChange={handleChange}>
               <option value="buyer">Buyer</option>
               <option value="seller">Seller</option>
             </select>
           </>
         )}
-
         <input
-          type="email"
           name="email"
+          type="email"
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
-          className="border px-3 py-2 rounded"
+          required
         />
         <input
-          type="password"
           name="password"
+          type="password"
           placeholder="Password"
           value={form.password}
           onChange={handleChange}
-          className="border px-3 py-2 rounded"
+          required
         />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          {isLogin ? "Login" : "Sign Up"}
-        </button>
-        <p className="text-sm text-center text-gray-500">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <span
-            className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setMessage("");
-            }}
-          >
-            {isLogin ? "Sign Up" : "Login"}
-          </span>
-        </p>
-        {message && <p className="text-red-500 text-center">{message}</p>}
+        <button type="submit">{isRegister ? "Register" : "Login"}</button>
       </form>
+      <p style={{ marginTop: "10px" }}>
+        {isRegister ? "Have an account?" : "Don't have an account?"}{" "}
+        <span
+          onClick={() => setIsRegister(!isRegister)}
+          style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
+        >
+          {isRegister ? "Login" : "Register"}
+        </span>
+      </p>
     </div>
   );
 }
