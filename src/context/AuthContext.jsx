@@ -1,56 +1,35 @@
-import React, { createContext, useState } from "react";
-import { loginUser, registerUser } from "../pages/api.js";
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
 export const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("ecom_user"));
-    } catch {
-      return null;
-    }
-  });
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
 
-  const login = async (formData) => {
+  const fetchUser = async () => {
     try {
-      const res = await loginUser(formData);
-      localStorage.setItem("ecom_user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Login failed",
-      };
+      const res = await axios.get("http://localhost:5000/auth/user", { withCredentials: true });
+      setUser(res.data);
+    } catch {
+      setUser(null);
     }
   };
 
-  const register = async (formData) => {
-    try {
-      const res = await registerUser(formData);
-      localStorage.setItem("ecom_user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Register failed",
-      };
-    }
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const loginWithGoogle = () => {
+    window.location.href = "http://localhost:5000/auth/google";
   };
 
   const logout = () => {
-    localStorage.removeItem("ecom_user");
-    localStorage.removeItem("token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};

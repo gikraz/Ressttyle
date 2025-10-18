@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
@@ -18,7 +18,7 @@ export default function App() {
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem("ecom_favs", JSON.stringify(favorites));
   }, [favorites]);
 
@@ -35,23 +35,11 @@ export default function App() {
 
         <main className="flex-1 w-full">
           <Routes>
-            <Route
-              path="/"
-              element={<Home favorites={favorites} toggleFav={toggleFav} />}
-            />
-            <Route
-              path="/favorites"
-              element={<Favorites favorites={favorites} toggleFav={toggleFav} />}
-            />
+            <Route path="/" element={<Home favorites={favorites} toggleFav={toggleFav} />} />
+            <Route path="/favorites" element={<Favorites favorites={favorites} toggleFav={toggleFav} />} />
             <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/discounts"
-              element={<DiscountFeed favorites={favorites} toggleFav={toggleFav} />}
-            />
-            <Route
-              path="/secondhand"
-              element={<Secondhand favorites={favorites} toggleFav={toggleFav} />}
-            />
+            <Route path="/discounts" element={<DiscountFeed favorites={favorites} toggleFav={toggleFav} />} />
+            <Route path="/secondhand" element={<Secondhand favorites={favorites} toggleFav={toggleFav} />} />
           </Routes>
         </main>
         <Footer />
