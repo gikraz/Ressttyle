@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "https://backend-testing-sage.vercel.app/api";
+const API_BASE = "https://backend-testing-itbz.vercel.app/";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,8 +9,15 @@ export default function Auth() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
-    if (!clientId) return;
+    const clientId =
+      (typeof process !== "undefined"
+        ? process.env.REACT_APP_GOOGLE_CLIENT_ID
+        : import.meta.env?.VITE_GOOGLE_CLIENT_ID) || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+    if (!clientId) {
+      console.error("Google Client ID is missing!");
+      return;
+    }
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -27,7 +34,7 @@ export default function Auth() {
 
         window.google.accounts.id.renderButton(
           document.getElementById("googleSignInDiv"),
-          { theme: "outline", size: "large", width: "100%" }
+          { theme: "outline", size: "large", width: 300 }
         );
       }
     };
@@ -38,9 +45,10 @@ export default function Auth() {
   }, []);
 
   const handleGoogleCredentialResponse = async (response) => {
-
     try {
-      const { data } = await axios.post(`${API_BASE}/google-login`, { id_token: response.credential });
+      const { data } = await axios.post(`${API_BASE}/google-login`, {
+        id_token: response.credential,
+      });
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role || "buyer");
       setMessage("Logged in with Google");
