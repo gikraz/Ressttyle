@@ -6,7 +6,7 @@ import Home from "./pages/Home.jsx";
 import Favorites from "./pages/Favorites.jsx";
 import Auth from "./pages/Auth.jsx";
 import DiscountFeed from "./pages/DiscountFeed.jsx";
-import Secondhand from "./pages/Secondhand.jsx";
+import Secondhand from './pages/secondhand.jsx';
 import { AuthProvider } from "./context/AuthContext.jsx";
 
 export default function App() {
