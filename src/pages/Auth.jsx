@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "https://backend-testing-itbz.vercel.app/register";
+const API_BASE = "https://backend-testing-itbz.vercel.app";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,15 +9,8 @@ export default function Auth() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const clientId =
-      (typeof process !== "undefined"
-        ? process.env.REACT_APP_GOOGLE_CLIENT_ID
-        : import.meta.env?.VITE_GOOGLE_CLIENT_ID) || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
-
-    if (!clientId) {
-      console.error("Google Client ID is missing!");
-      return;
-    }
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    if (!clientId) return console.error("Google Client ID is missing!");
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -27,28 +20,17 @@ export default function Auth() {
 
     script.onload = () => {
       if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: handleGoogleCredentialResponse,
-        });
-
-        window.google.accounts.id.renderButton(
-          document.getElementById("googleSignInDiv"),
-          { theme: "outline", size: "large", width: 300 }
-        );
+        window.google.accounts.id.initialize({ client_id: clientId, callback: handleGoogleCredentialResponse });
+        window.google.accounts.id.renderButton(document.getElementById("googleSignInDiv"), { theme: "outline", size: "large", width: 300 });
       }
     };
 
-    return () => {
-      document.body.removeChild(script);
-    };
+    return () => document.body.removeChild(script);
   }, []);
 
   const handleGoogleCredentialResponse = async (response) => {
     try {
-      const { data } = await axios.post(`${API_BASE}/google-login`, {
-        id_token: response.credential,
-      });
+      const { data } = await axios.post(`${API_BASE}/google-login`, { id_token: response.credential });
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role || "buyer");
       setMessage("Logged in with Google");
@@ -75,71 +57,28 @@ export default function Auth() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          {isLogin ? "Log In" : "Sign Up"}
-        </h2>
-
+      <div className="bg-white p-8 rounded-xl w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center mb-6">{isLogin ? "Log In" : "Sign Up"}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && <input type="text" name="username" placeholder="Username" value={form.username} onChange={handleChange} className="w-full border rounded-lg px-4 py-2" required />}
+          <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} className="w-full border rounded-lg px-4 py-2" required />
+          <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} className="w-full border rounded-lg px-4 py-2" required />
           {!isLogin && (
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={form.username}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          )}
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-
-          {!isLogin && (
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
+            <select name="role" value={form.role} onChange={handleChange} className="w-full border rounded-lg px-4 py-2">
               <option value="buyer">Buyer</option>
               <option value="seller">Seller</option>
             </select>
           )}
-
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition"
-          >
-            {isLogin ? "Log In" : "Sign Up"}
-          </button>
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">{isLogin ? "Log In" : "Sign Up"}</button>
         </form>
 
         <div className="my-4">
           <div id="googleSignInDiv" />
         </div>
 
-        {message && <p className="text-center text-sm mt-4 text-gray-700">{message}</p>}
+        {message && <p className="text-center mt-4 text-gray-700">{message}</p>}
 
-        <p className="text-center text-sm mt-6 text-gray-600">
+        <p className="text-center mt-6 text-gray-600">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button onClick={() => setIsLogin(!isLogin)} className="text-blue-500 hover:underline">
             {isLogin ? "Sign Up" : "Log In"}
