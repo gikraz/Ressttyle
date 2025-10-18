@@ -1,27 +1,65 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+
+const API_BASE = "https://backend-testing-sage.vercel.app/api";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: "", email: "", password: "", role: "buyer" });
   const [message, setMessage] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
+    if (!clientId) return;
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          { theme: "outline", size: "large", width: "100%" }
+        );
+      }
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleGoogleCredentialResponse = async (response) => {
+
+    try {
+      const { data } = await axios.post(`${API_BASE}/google-login`, { id_token: response.credential });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role || "buyer");
+      setMessage("Logged in with Google");
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Google login failed");
+    }
   };
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-
-    const url = isLogin
-      ? "https://backend-testing-sage.vercel.app/api/login"
-      : "https://backend-testing-sage.vercel.app/api/register";
-
+    const url = isLogin ? `${API_BASE}/login` : `${API_BASE}/register`;
     try {
       const { data } = await axios.post(url, form);
-      setMessage(data.message || "Success");
-      console.log(data);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role || "buyer");
+      setMessage("Success");
     } catch (err) {
       setMessage(err.response?.data?.message || "An error occurred");
     }
@@ -87,16 +125,15 @@ export default function Auth() {
           </button>
         </form>
 
-        {message && (
-          <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
-        )}
+        <div className="my-4">
+          <div id="googleSignInDiv" />
+        </div>
+
+        {message && <p className="text-center text-sm mt-4 text-gray-700">{message}</p>}
 
         <p className="text-center text-sm mt-6 text-gray-600">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:underline"
-          >
+          <button onClick={() => setIsLogin(!isLogin)} className="text-blue-500 hover:underline">
             {isLogin ? "Sign Up" : "Log In"}
           </button>
         </p>
