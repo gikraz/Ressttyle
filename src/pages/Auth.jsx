@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "https://backend-testing-itbz.vercel.app/";
+const API_BASE = "https://backend-testing-itbz.vercel.app/register";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
