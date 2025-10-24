@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 const API_BASE = "http://localhost:3000";
 
 export default function Auth() {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: "", email: "", password: "", role: "buyer" });
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) return console.error("Google Client ID is missing!");
+    if (!clientId) return;
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -36,9 +41,8 @@ export default function Auth() {
   const handleGoogleCredentialResponse = async (response) => {
     try {
       const { data } = await axios.post(`${API_BASE}/google-login`, { id_token: response.credential });
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role || "buyer");
-      setMessage("Logged in with Google");
+      login(data.user, data.token);
+      navigate("/");
     } catch (err) {
       setMessage(err.response?.data?.message || "Google login failed");
     }
@@ -52,9 +56,8 @@ export default function Auth() {
     const url = isLogin ? `${API_BASE}/login` : `${API_BASE}/register`;
     try {
       const { data } = await axios.post(url, form);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role || "buyer");
-      setMessage("Success");
+      login(data.user, data.token);
+      navigate("/");
     } catch (err) {
       setMessage(err.response?.data?.message || "An error occurred");
     }

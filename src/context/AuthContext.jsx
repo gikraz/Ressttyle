@@ -1,34 +1,30 @@
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem("token") || "");
 
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/auth/user", { withCredentials: true });
-      setUser(res.data);
-    } catch {
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  const loginWithGoogle = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+  const login = (userData, token) => {
+    setUser(userData);
+    setToken(token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
   };
 
   const logout = () => {
     setUser(null);
+    setToken("");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
