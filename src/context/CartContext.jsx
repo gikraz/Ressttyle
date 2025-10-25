@@ -8,12 +8,19 @@ export const CartProvider = ({ children }) => {
   const { user, token } = useContext(AuthContext);
   const [cart, setCart] = useState([]);
 
+  // Axios instance for backend
+  const api = axios.create({
+    baseURL: "https://re-style-backend-i9fa.vercel.app/",
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  });
+
+  // Fetch cart items
   const fetchCart = async () => {
     if (!user || !token) return;
     try {
-      const res = await axios.get("http://localhost:3000/cart", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/cart");
       setCart(res.data);
     } catch (err) {
       console.error("Fetch cart failed:", err);
@@ -21,14 +28,11 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Add item to cart
   const addToCart = async (productId, quantity = 1) => {
     if (!user || !token) return alert("Please login first!");
     try {
-      const res = await axios.post(
-        "http://localhost:3000/cart",
-        { productId, quantity },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post("/cart", { productId, quantity });
       setCart(res.data);
     } catch (err) {
       console.error("Add to cart failed:", err);

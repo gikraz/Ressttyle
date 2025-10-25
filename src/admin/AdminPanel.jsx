@@ -5,15 +5,29 @@ const AdminPanel = ({ token }) => {
   const [stats, setStats] = useState({});
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  if(!token) token = localStorage.getItem('token') 
 
+  // Get token from cookies if not provided
+  if (!token) {
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    };
+    token = getCookie("token");
+  }
+
+  // Axios instance with base URL and headers
+  const api = axios.create({
+    baseURL: "https://re-style-backend-i9fa.vercel.app/",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   // Fetch stats
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/admin/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/admin/stats");
       setStats(res.data);
     } catch (err) {
       console.error(err);
@@ -23,9 +37,7 @@ const AdminPanel = ({ token }) => {
   // Fetch all users
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/admin/users");
       setUsers(res.data);
     } catch (err) {
       console.error(err);
@@ -38,9 +50,7 @@ const AdminPanel = ({ token }) => {
   const deleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      await axios.delete(`http://localhost:3000/admin/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/admin/users/${id}`);
       setUsers(users.filter((user) => user._id !== id));
     } catch (err) {
       console.error(err);
@@ -51,11 +61,7 @@ const AdminPanel = ({ token }) => {
   // Change user role
   const changeUserRole = async (id, newRole) => {
     try {
-      const res = await axios.patch(
-        `http://localhost:3000/admin/users/${id}/role`,
-        { role: newRole },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.patch(`/admin/users/${id}/role`, { role: newRole });
       setUsers(users.map((u) => (u._id === id ? res.data : u)));
     } catch (err) {
       console.error(err);
@@ -85,7 +91,11 @@ const AdminPanel = ({ token }) => {
       <hr />
 
       <h2>All Users</h2>
-      <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%" }}>
+      <table
+        border="1"
+        cellPadding="8"
+        style={{ borderCollapse: "collapse", width: "100%" }}
+      >
         <thead>
           <tr>
             <th>Username</th>
