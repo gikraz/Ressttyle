@@ -6,7 +6,7 @@ const AdminPanel = ({ token }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Get token from cookies if not provided
+
   if (!token) {
     const getCookie = (name) => {
       const value = `; ${document.cookie}`;
@@ -16,15 +16,16 @@ const AdminPanel = ({ token }) => {
     token = getCookie("token");
   }
 
-  // Axios instance with base URL and headers
+
   const api = axios.create({
     baseURL: "https://re-style-backend-i9fa.vercel.app/",
+    withCredentials: true,
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  // Fetch stats
+
   const fetchStats = async () => {
     try {
       const res = await api.get("/admin/stats");
@@ -34,7 +35,7 @@ const AdminPanel = ({ token }) => {
     }
   };
 
-  // Fetch all users
+
   const fetchUsers = async () => {
     try {
       const res = await api.get("/admin/users");
@@ -46,7 +47,7 @@ const AdminPanel = ({ token }) => {
     }
   };
 
-  // Delete user
+
   const deleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
@@ -58,7 +59,7 @@ const AdminPanel = ({ token }) => {
     }
   };
 
-  // Change user role
+
   const changeUserRole = async (id, newRole) => {
     try {
       const res = await api.patch(`/admin/users/${id}/role`, { role: newRole });

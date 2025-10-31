@@ -11,6 +11,7 @@ export const CartProvider = ({ children }) => {
   // Axios instance for backend
   const api = axios.create({
     baseURL: "https://re-style-backend-i9fa.vercel.app/",
+    withCredentials: true,
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
     },

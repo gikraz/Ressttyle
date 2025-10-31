@@ -1,4 +1,3 @@
-// src/components/AddProduct.jsx
 import { useState } from "react";
 import axios from "axios";
 
@@ -7,7 +6,7 @@ export default function AddProduct() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Axios instance for backend
+
   const api = axios.create({
     baseURL: "https://re-style-backend-i9fa.vercel.app/api",
   });
